@@ -13,6 +13,6 @@ df = pd.read_csv('選擇題.csv')
 words = [keyword(i[0]) for i in  df.values]
 
 #%%
-words[0].sorting()
+words[4].sorting()
 
 #%%

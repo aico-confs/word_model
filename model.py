@@ -4,12 +4,21 @@ import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
 import sys, os
+def is_number(num):
+  pattern = re.compile(r'^[-+]?[-0-9]\d*\.\d*|[-+]?\.?[0-9]\d*$')
+  result = pattern.match(num)
+  if result:
+    return True
+  else:
+    return False
 def cutword(txt):
     txt = re.sub('\s', '', txt)
     my_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
     path = os.path.join(my_path, 'dict.txt')
     jieba.set_dictionary(path)
     path = os.path.join(my_path, "dict.txt.big")
+    jieba.set_dictionary(path)
+    path = os.path.join(my_path, "userdict.txt")
     jieba.load_userdict(path)
     cut_result = jieba.cut(txt, cut_all=False, HMM=True)
     cut_word = list(cut_result)
@@ -39,20 +48,22 @@ class keyword():
     def sorting(self):
         vectorizer = TfidfVectorizer(token_pattern=r"(?u)\b\w\w+\b")
         cv=CountVectorizer(max_features=1000, token_pattern=r"(?u)\b\w\w+\b")
-        sentences = re.findall(r'.*?[，。、：,.\s]' ,self.txt)
-        if not sentences:
-            raise ValueError('配對為空')
-        sent_words = [list(jieba.cut(sent0)) for sent0 in sentences]
-        document = [" ".join(sent0) for sent0 in sent_words]
+        # sentences = re.findall(r'.*?[，。、：,.\s]' ,self.txt)
+        # if not sentences:
+            # raise ValueError('配對為空')
+        # sent_words = [list(jieba.cut(sent0)) for sent0 in sentences]
+        # document = [" ".join(sent0) for sent0 in sent_words]
         
-        sk_tfidf = vectorizer.fit_transform(document)
-        bag = cv.fit_transform(document)
+        sk_tfidf = vectorizer.fit_transform(self.clearword)
+        bag = cv.fit_transform(self.clearword)
         dict_ = vectorizer.vocabulary_
         all_word = cv.get_feature_names()
         idf = abs((vectorizer.idf_ - np.mean(vectorizer.idf_))/np.std(vectorizer.idf_))
 
         key = cv.transform(self.clearword)
-        sum_list = np.sum(key.toarray(), axis=0)*idf
+        sum_list = np.sum(key.toarray(), axis=0)*idf 
+        # if is_number(str(idf)) else [1]*len(all_word)
+
         return sorted([i for i in list(zip(all_word, sum_list)) if i[1]], key = lambda x :x[1], reverse=True)
 
 
